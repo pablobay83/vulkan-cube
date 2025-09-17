@@ -35,7 +35,7 @@
 #define CUBE_COL  20
 #define CUBE_DEEP 20
 
-#define LIGHTER_NUM 16
+#define LIGHTER_NUM 512
 
 uint32_t WIDTH = 800;
 uint32_t HEIGHT = 600;
@@ -60,8 +60,8 @@ float ch = 1.0f;
 float cube_grid_gap_w = 0.5f;
 float cube_grid_gap_h = cube_grid_gap_w;
 float cube_grid_gap_d = cube_grid_gap_w + cw;
-float dis = 5.0f;
 
+float dis = 5.0f;
 float tcw = (float)(CUBE_COL * (cube_grid_gap_w + cw)) + cube_grid_gap_w;
 float tch = (float)(CUBE_ROW * (cube_grid_gap_h + ch)) + cube_grid_gap_h;
 float tcd = (float)(CUBE_DEEP * cw + (CUBE_DEEP-1)*(cube_grid_gap_d - cw));
@@ -364,17 +364,14 @@ private:
         if(setup_once == 0) {
             axis = glm::vec3(rndDist(rndEngine),rndDist(rndEngine),rndDist(rndEngine));
             axis = glm::normalize(axis);
-
             pivot = glm::vec3(0.0f,0.0f,-tcd/2-cube_grid_gap_d+cw/2);
+            createLighterPos();
             float length = -pivot.z;
-            glm::vec3 tempv,v;
+            glm::vec3 v;
             for(int k = 0;k < LIGHTER_NUM;k++) {
-                tempv = glm::normalize(glm::vec3(rndDist(rndEngine),rndDist(rndEngine),rndDist(rndEngine)));
-                std::cout << "tempv.x = " << tempv.x << "tempv.y = " << tempv.y  << "tempv.z = " << tempv.z << std::endl;
-                lighter_pos[k] = 3.0f*length*tempv;
                 v = glm::normalize(glm::vec3(rndDist(rndEngine),rndDist(rndEngine),rndDist(rndEngine)));
                 for(;;) {
-                    if((lighter_axis[k]=glm::cross(v,tempv)) == glm::vec3(0.0f)) {
+                    if((lighter_axis[k]=glm::cross(v,(pivot-lighter_pos[k]))) == glm::vec3(0.0f)) {
                         v = glm::normalize(glm::vec3(rndDist(rndEngine),rndDist(rndEngine),rndDist(rndEngine)));
                     }
                     else {
@@ -384,6 +381,23 @@ private:
                 lighter_axis[k] = glm::normalize(lighter_axis[k]);
             }
             setup_once = 1;
+        }
+    }
+
+    void createLighterPos() {
+        std::default_random_engine rndEngine((unsigned)time(nullptr));
+        std::uniform_real_distribution<float> rndDist(0.0f, 360.0f);
+        float length = -pivot.z*2.0f;
+        float theta,phi;
+        glm::mat4 m = glm::translate(glm::mat4(1.0f),pivot);
+        for(int i = 0;i < LIGHTER_NUM;i++) {
+            theta = rndDist(rndEngine);
+            phi = rndDist(rndEngine);
+            lighter_pos[i].x = length * glm::sin(theta) * glm::cos(phi);
+            lighter_pos[i].y = length * glm::sin(theta) * glm::sin(phi);
+            lighter_pos[i].z = length * glm::cos(theta);
+            //lighter_pos[k] = glm::vec3(m * glm::vec4(lighter_pos[k],1.0f));
+            lighter_pos[i] = lighter_pos[i] + pivot;
         }
     }
 

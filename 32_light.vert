@@ -1,6 +1,6 @@
 #version 450
 
-#define LIGHTER_NUM 16
+#define LIGHTER_NUM 512
 
 layout(std140,binding = 0) uniform UniformBufferObject {
     mat4 view;
